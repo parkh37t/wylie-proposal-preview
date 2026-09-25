@@ -156,25 +156,11 @@
       const target=/project/.test(first)?$('project-name'):/rfp/.test(first)?$('rfp-file'):first==='meetingText'?$('meeting-text'):/meeting/.test(first)?$('meeting-files'):/url/.test(first)?$('url-rows').querySelectorAll('input')[urlIndex]:$('keywords');
       target.focus();notify('필수 자료와 입력 형식을 확인해 주세요.',true);return;
     }
-    state.prepared=model.createBrief(data);
-    $('download-status').textContent='';
-    const urlCount=data.urls.filter(x=>x.trim()).length;
-    const keywordCount=data.keywords.split(/[,，\n]/).filter(x=>x.trim()).length;
-    $('prepared-summary').replaceChildren(el('strong','',data.projectName),el('span','',`RFP 1개 · 회의록 파일 ${data.meetingFiles.length}개${data.meetingText.trim()?' + 직접 입력':''} · 서비스 URL ${urlCount}개 · ${countryNames[data.country]}`));
-    const steps=[['문서 요구사항과 제약조건 정리','분석 연결 필요'],['고객 발언·잠정 합의 검토',data.meetingFiles.length||data.meetingText.trim()?'분석 연결 필요':'자료 없음 · 제외'],['현재 서비스의 사용자 과업 관찰',urlCount?'관찰 연결 필요':'URL 없음 · 제외'],['ListeningMind 검색 데이터 조사',keywordCount?'연결 후 실행':'키워드 입력 필요']];
-    $('prepared-steps').replaceChildren(...steps.map(([label,status])=>{const li=el('li','',label);li.append(el('span','',status));return li;}));
-    $('prepared-dialog').showModal();
+    window.runDocumentAnalysis(data);
   }
   $('intake-form').addEventListener('submit',e=>{e.preventDefault();openPrepared();});
-  ['close-prepared','edit-inputs'].forEach(id=>$(id).addEventListener('click',()=>$('prepared-dialog').close()));
   $('help-button').addEventListener('click',()=>$('help-dialog').showModal());
   $('close-help').addEventListener('click',()=>$('help-dialog').close());
-  $('download-brief').addEventListener('click',()=>{
-    if(!state.prepared)return;
-    const blob=new Blob([JSON.stringify(state.prepared,null,2)+'\n'],{type:'application/json;charset=utf-8'});
-    const url=URL.createObjectURL(blob);const link=el('a');link.href=url;link.download='wylie-research-brief.json';document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
-    $('download-status').textContent='다운로드를 요청했습니다. 실제 분석은 아직 시작하지 않았습니다.';
-  });
   $('load-demo').addEventListener('click',()=>{
     const current=inputs();
     if(current.projectName || state.rfp || current.meetingFiles.length || current.meetingText || current.urls.some(x=>x.trim()) || current.keywords){notify('현재 입력을 유지했습니다. 예시는 입력이 비어 있을 때 불러올 수 있습니다.',true);return;}
