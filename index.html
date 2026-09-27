@@ -6,11 +6,11 @@
   <meta name="color-scheme" content="light">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <title>새 프로젝트 · Wylie Proposal Lab</title>
-  <link rel="stylesheet" href="styles.css?v=2">
-  <script src="icons.js?v=2" defer></script>
-  <script src="intake-model.js?v=2" defer></script>
-  <script src="demo-data.js?v=2" defer></script>
-  <script src="document-analysis.js?v=2" defer></script><script src="analysis-view.js?v=2" defer></script><script src="app.js?v=2" defer></script>
+  <link rel="stylesheet" href="styles.css?v=20260927-report1">
+  <script src="icons.js?v=20260927-report1" defer></script>
+  <script src="intake-model.js?v=20260927-report1" defer></script>
+  <script src="demo-data.js?v=20260927-report1" defer></script>
+  <script src="document-analysis.js?v=20260927-report1" defer></script><script src="report-export.js?v=20260927-report1" defer></script><script src="analysis-view.js?v=20260927-report1" defer></script><script src="app.js?v=20260927-report1" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#intake">자료 입력으로 건너뛰기</a>
@@ -25,7 +25,7 @@
       <li><i data-icon="PanelsTopLeft"></i><span>제안서 구성</span><small>예정</small></li>
     </ol></nav>
     <div class="sidebar-note"><span class="tiny-label">OUR APPROACH</span><p>자료에서 근거를,<br>근거에서 제안의 방향을.</p><span class="note-line"></span><small>좋은 질문부터 함께 시작합니다.</small></div>
-    <a class="repo-link" href="https://github.com/parkh37t/wylie-proposal-preview" target="_blank" rel="noopener noreferrer"><i data-icon="GitBranch"></i><span>화면 소스<small>wylie-proposal-preview</small></span><i data-icon="ArrowUpRight"></i></a>
+    <a class="repo-link" href="https://github.com/parkh37t/wylie-proposal-agent" target="_blank" rel="noopener noreferrer"><i data-icon="GitBranch"></i><span>프로젝트 저장소<small>wylie-proposal-agent</small></span><i data-icon="ArrowUpRight"></i></a>
   </aside>
   <div class="workspace">
     <header class="topbar"><div class="breadcrumb">워크스페이스 <span>/</span> <strong>새 프로젝트</strong></div><div class="topbar-right"><span class="prototype-label"><span></span>문서 분석 초기 버전</span><button class="icon-button" id="help-button" type="button" aria-label="이 화면에서 할 수 있는 일"><i data-icon="CircleHelp"></i></button><span class="avatar" aria-label="와일리 워크스페이스">W</span></div></header>
@@ -68,11 +68,17 @@
           </div><div class="evidence-note"><i data-icon="GitBranch"></i><p><strong>모든 제안에는 근거가 남도록.</strong><span>문서 요구 · 고객 발언 · 관찰 사실을 구분하고, AI의 해석은 별도로 검토합니다.</span></p></div></aside>
         </div>
       </form>
-<section id="analysis-panel" hidden aria-labelledby="analysis-heading"><p class="eyebrow">PROJECT UNDERSTANDING</p><h2 id="analysis-heading" tabindex="-1">문서 분석</h2><p class="analysis-disclosure">파일은 이 브라우저에서 실제로 읽습니다. 아래 결과는 원문과 규칙 기반 분류이며 AI 의미 분석 결과가 아닙니다. 새로고침하면 자료와 결과가 사라집니다.</p><p id="analysis-state" role="status">본문을 읽고 있습니다.</p><ul id="analysis-log" aria-live="polite"></ul><p id="analysis-count"></p><p id="analysis-external"></p><div class="dialog-actions"><button id="analysis-cancel" type="button" class="secondary-button">분석 중지</button><button id="analysis-edit" type="button" class="primary-button">등록 자료 수정 · 다시 분석</button></div><div id="analysis-results"></div></section>
+<section id="analysis-panel" hidden aria-labelledby="analysis-heading"><p class="eyebrow">PROJECT UNDERSTANDING</p><h2 id="analysis-heading" tabindex="-1">문서 분석</h2><p class="analysis-disclosure">파일은 이 브라우저에서 실제로 읽습니다. 아래 결과는 원문과 규칙 기반 분류이며 AI 의미 분석 결과가 아닙니다. 새로고침하면 자료와 결과가 사라집니다.</p><p id="analysis-state" role="status">본문을 읽고 있습니다.</p><ul id="analysis-log" aria-live="polite"></ul><p id="analysis-count"></p><p id="analysis-external"></p><div class="dialog-actions"><button id="analysis-cancel" type="button" class="secondary-button">분석 중지</button><button id="analysis-edit" type="button" class="primary-button">등록 자료 수정 · 다시 분석</button></div><p id="analysis-overview" class="analysis-overview"></p>
+<div class="report-actions"><button id="report-download" type="button" class="secondary-button" disabled>보고서 다운로드 (.html)</button><button id="report-print" type="button" class="secondary-button" disabled>인쇄 / PDF 저장</button><button id="analysis-next" type="button" class="primary-button" disabled>다음 단계 · 검토와 조사 계획</button></div>
+<p class="field-hint">전체 분류 결과와 출처를 문서에 담습니다. PDF는 인쇄 창에서 ‘PDF로 저장’을 선택하세요.</p><p id="report-status" role="status"></p>
+<section class="analysis-group"><label for="review-notes" class="field-label">검토 메모</label><textarea id="review-notes" maxlength="10000" placeholder="잘못 분류된 항목, 누락 자료, 고객에게 확인할 내용을 적으세요. 보고서에 포함됩니다."></textarea><p class="field-hint">메모는 현재 페이지에서만 유지됩니다. 자료를 다시 분석하거나 새로고침하기 전에 보고서를 내려받으세요.</p></section>
+<section id="next-step" class="analysis-group" hidden><h3 id="next-heading" tabindex="-1">다음은 검토를 마치고 조사 계획을 정하는 단계입니다</h3><ol class="next-step-list"><li><strong>원문 대조</strong> — 사업 목표와 제안서 작성 지침을 구분하고 요구사항 후보를 검토합니다.</li><li><strong>자료 보완</strong> — RFP가 참조하는 첨부자료와 회의록을 확인하고 고객 질문을 메모합니다.</li><li><strong>조사 계획</strong> — 아래 키워드 후보를 검토하고 비교할 서비스와 평가 기준을 정합니다.</li></ol><p>문서에서 찾은 키워드 후보: <span id="research-candidates"></span></p><p class="field-hint">이 버튼은 안내를 펼칩니다. AI 분석·ListeningMind 조회·URL 관찰은 실행하지 않습니다. 실제 조사 연결 후 근거를 수집하고, 그다음 개선 기회와 제안 전략을 작성합니다.</p></section>
+<div id="analysis-results"></div></section>
       <footer class="page-footer"><span>WYLIE PROPOSAL LAB</span><span>01 · 프로젝트 시작</span></footer>
     </main>
   </div>
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
   <dialog id="help-dialog" aria-labelledby="help-title"><div class="dialog-header"><span class="dialog-kicker">화면 안내</span><button type="button" class="icon-button" id="close-help" aria-label="화면 안내 닫기"><i data-icon="X"></i></button></div><h2 id="help-title">문서를 읽고 근거부터 확인합니다.</h2><p class="dialog-description">DOCX 본문과 회의록을 읽어 요구사항·제약·확인 질문 후보를 원문 위치와 함께 표시합니다.</p><div class="help-boundary"><strong>다음 연결 단계</strong><p>AI 의미 분석, 서비스 페이지 관찰, ListeningMind 데이터 조회는 서버 연결이 필요합니다.</p><p>현재 파일을 전송하거나 URL에 접속하지 않으며, 검색량·시장 인사이트를 생성하지 않습니다.</p></div></dialog>
+<article id="print-report" aria-hidden="true"></article>
 </body>
 </html>

@@ -2,14 +2,16 @@
 (() => {
   const $=id=>document.getElementById(id);
   const node=(tag,text,cls)=>{const n=document.createElement(tag);n.textContent=text;if(cls)n.className=cls;return n;};
-  let cancelled=false;
+  let cancelled=false,currentReport=null,currentProject='';
+  const snapshot=()=>({projectName:currentProject,report:currentReport,status:$('analysis-state').textContent,logs:Array.from($('analysis-log').children,n=>n.textContent),notes:$('review-notes').value,createdAt:new Date().toLocaleString('ko-KR')});
   const paint=()=>new Promise(resolve=>requestAnimationFrame(()=>setTimeout(resolve,0)));
   function render(rows){
     const report=window.WylieDocuments.analyze(rows);
+    currentReport=report;
     $('analysis-results').replaceChildren();
     const titles={goals:'목표·배경 관련 원문',requirements:'요구사항 후보',constraints:'일정·제약 관련 원문',questions:'확인이 필요한 원문',statements:'고객 발언 · 미확정'};
     for(const [key,title] of Object.entries(titles)){
-      const section=node('section','', 'analysis-group');section.append(node('h3',`${title} (${report.groups[key].length})`));
+      const section=node('details','', 'analysis-group');section.append(node('summary',`${title} (${report.groups[key].length}) · 원문 보기`));
       if(!report.groups[key].length)section.append(node('p','규칙에 해당하는 문장을 찾지 못했습니다. 해당 내용이 없다는 뜻은 아닙니다.'));
       report.groups[key].slice(0,60).forEach(row=>{const detail=document.createElement('details');detail.append(node('summary',row.text.slice(0,180)+(row.text.length>180?'…':'')),node('p',row.text),node('small',`${row.source} · 문단 ${row.paragraph} · ${row.role==='meeting'?'미확정 고객 발언':'RFP 원문'}`));section.append(detail);});
       if(report.groups[key].length>60)section.append(node('p','각 분류는 앞의 60개를 표시합니다. 원문 전체 검토를 병행해 주세요.'));
@@ -21,12 +23,16 @@
     research.append(node('small','사전 정의한 업무 용어의 출현 빈도로 찾은 후보입니다. AI 선정·검색량 결과가 아닙니다.'));
     $('analysis-results').append(research);
     $('analysis-count').textContent=`본문 ${report.paragraphCount.toLocaleString()}개 문단에서 후보를 정리했습니다.`;
+    $('analysis-overview').textContent=`요구사항 후보 ${report.groups.requirements.length}건 · 일정·제약 ${report.groups.constraints.length}건 · 확인 필요 ${report.groups.questions.length}건 · 고객 발언 ${report.groups.statements.length}건 (중복 포함)`;
+    $('research-candidates').textContent=report.keywords.length?report.keywords.map(k=>k.term).join(', '):'키워드 후보가 없습니다. 사업 목표를 검토한 뒤 직접 선정해야 합니다.';
   }
   window.runDocumentAnalysis=async data=>{
-    cancelled=false;$('intake-form').hidden=true;$('analysis-panel').hidden=false;$('analysis-edit').disabled=true;$('analysis-cancel').hidden=false;
+    cancelled=false;currentReport=null;currentProject=data.projectName;$('analysis-overview').textContent='';$('review-notes').value='';$('next-step').hidden=true;
+    for(const id of ['report-download','report-print','analysis-next'])$(id).disabled=true;
+    $('intake-form').hidden=true;$('analysis-panel').hidden=false;$('analysis-edit').disabled=true;$('analysis-cancel').hidden=false;
     $('analysis-results').replaceChildren();$('analysis-log').replaceChildren();$('analysis-count').textContent='';
     $('analysis-state').textContent='본문을 읽고 있습니다.';$('analysis-external').textContent='';
-    $('analysis-heading').textContent=data.projectName+' · 문서 분석';$('analysis-heading').focus();
+    $('analysis-heading').textContent=data.projectName+' · 자료 검토 초안';$('analysis-heading').focus();
     const files=[{file:data.rfp,role:'rfp'},...data.meetingFiles.map(file=>({file,role:'meeting'}))];let rows=[],failures=0;
     try{
       for(const {file,role} of files){
@@ -47,8 +53,19 @@
       if(!rows.length)$('analysis-count').textContent='분석 가능한 본문이 없습니다. 자료를 확인해 주세요.';
       $('analysis-external').textContent=`AI 의미 분석: 연결 필요 · ListeningMind: 연결 필요 · 서비스 URL ${data.urls.filter(x=>x.trim()).length}개: 관찰 연결 필요. 현재 외부 요청은 실행하지 않았습니다.`;
     }catch(error){$('analysis-state').textContent='분석 오류: '+error.message;}
-    finally{$('analysis-edit').disabled=false;$('analysis-cancel').hidden=true;}
+    finally{$('analysis-edit').disabled=false;$('analysis-cancel').hidden=true;for(const id of ['report-download','report-print','analysis-next'])$(id).disabled=!currentReport;}
   };
+  $('report-download').addEventListener('click',()=>{
+    if(!currentReport)return;
+    const url=URL.createObjectURL(new Blob([window.WylieReport.html(snapshot())],{type:'text/html;charset=utf-8'}));
+    const a=document.createElement('a');a.href=url;a.download=window.WylieReport.filename(currentProject);document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+    $('report-status').textContent='HTML 보고서 다운로드를 요청했습니다. 브라우저에서 열어 읽을 수 있으며 검토 메모와 전체 분류 결과가 포함됩니다.';
+  });
+  const preparePrint=()=>{if(currentReport)$('print-report').innerHTML=window.WylieReport.body(snapshot());};
+  window.addEventListener('beforeprint',preparePrint);
+  window.addEventListener('afterprint',()=>$('print-report').replaceChildren());
+  $('report-print').addEventListener('click',()=>{if(currentReport){preparePrint();window.print();}});
+  $('analysis-next').addEventListener('click',()=>{$('next-step').hidden=false;$('next-heading').focus();});
   $('analysis-cancel').addEventListener('click',()=>{cancelled=true;$('analysis-state').textContent='현재 파일 읽기 후 중지합니다.';});
   $('analysis-edit').addEventListener('click',()=>{$('analysis-panel').hidden=true;$('intake-form').hidden=false;$('project-name').focus();});
 })();
